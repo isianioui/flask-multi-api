@@ -1,0 +1,833 @@
+# Rapport Technique - Projet APIs Flask
+## Simulation d'Organes Humains avec Génération de Données Synthétiques
+
+**Date** : Novembre 2025  
+**Version** : 1.0.0  
+**Objectif** : Projet pédagogique - TP Développement d'APIs Flask
+
+---
+
+## Table des Matières
+
+1. [Vue d'Ensemble](#vue-densemble)
+2. [Architecture Technique](#architecture-technique)
+3. [Implémentation des APIs](#implémentation-des-apis)
+4. [Génération de Données Synthétiques](#génération-de-données-synthétiques)
+5. [Tests et Validation](#tests-et-validation)
+6. [Déploiement](#déploiement)
+7. [Conclusions](#conclusions)
+
+---
+
+## 1. Vue d'Ensemble
+
+### 1.1 Objectif du Projet
+
+Ce projet implémente un système distribué de simulation d'organes humains basé sur une architecture microservices. Chaque organe est représenté par une API Flask indépendante qui génère des données médicales synthétiques réalistes.
+
+### 1.2 Compétences Développées
+
+- ✅ Développement d'APIs REST avec Flask
+- ✅ Architecture microservices
+- ✅ Génération de données synthétiques
+- ✅ Communication inter-services
+- ✅ Documentation d'API
+- ✅ Tests et validation
+- ✅ Gestion de projet technique
+
+### 1.3 Technologies Utilisées
+
+| Technologie | Version | Usage |
+|-------------|---------|-------|
+| Python | 3.8+ | Langage principal |
+| Flask | 3.0.0 | Framework web |
+| Flask-CORS | 4.0.0 | Gestion CORS |
+| Requests | 2.31.0 | Requêtes HTTP |
+| Python-dateutil | 2.8.2 | Manipulation dates |
+
+---
+
+## 2. Architecture Technique
+
+### 2.1 Architecture Générale
+
+Le projet suit une architecture microservices avec 4 composants principaux :
+
+```
+┌─────────────────────────────────────────┐
+│                                         │
+│      Orchestration API (Port 5000)     │
+│      Coordination & Agrégation         │
+│                                         │
+└────────────┬────────────────────────────┘
+             │
+    ┌────────┴────────┬─────────────┐
+    │                 │             │
+┌───▼───────┐  ┌─────▼─────┐  ┌───▼────────┐
+│ Cardiac   │  │Respiratory│  │  Neural    │
+│   API     │  │    API    │  │    API     │
+│ (5001)    │  │  (5002)   │  │  (5003)    │
+└───────────┘  └───────────┘  └────────────┘
+```
+
+### 2.2 Principe de Conception
+
+#### Séparation des Responsabilités
+- **APIs d'Organes** : Génération de données spécifiques
+- **API d'Orchestration** : Coordination et agrégation
+
+#### Communication RESTful
+- Protocole HTTP/HTTPS
+- Format JSON pour les échanges
+- Endpoints standardisés
+
+#### Indépendance des Services
+- Chaque API peut fonctionner indépendamment
+- Pas de dépendances directes entre organes
+- Scalabilité horizontale possible
+
+### 2.3 Ports et Configuration
+
+| Service | Port | URL |
+|---------|------|-----|
+| Cardiac API | 5001 | http://localhost:5001 |
+| Respiratory API | 5002 | http://localhost:5002 |
+| Neural API | 5003 | http://localhost:5003 |
+| Orchestration API | 5000 | http://localhost:5000 |
+
+---
+
+## 3. Implémentation des APIs
+
+### 3.1 Structure Commune
+
+Chaque API d'organe suit la même structure :
+
+```python
+# Modèle de données (Dataclass)
+@dataclass
+class OrganData:
+    timestamp: str
+    parameter1: float
+    parameter2: int
+    # ... autres paramètres
+    status: str
+
+# Simulateur
+class OrganSimulator:
+    def __init__(self):
+        # Initialisation des paramètres
+        
+    def generate_normal_data(self):
+        # Génération de données normales
+        
+    def simulate_condition(self):
+        # Simulation de pathologie
+        
+    def get_status(self):
+        # Statut actuel
+
+# Routes Flask
+@app.route('/api/organ/status')
+def get_status():
+    # Endpoint de statut
+    
+@app.route('/api/organ/data')
+def get_data():
+    # Endpoint de données
+    
+@app.route('/api/organ/simulate/<condition>')
+def simulate_condition():
+    # Endpoint de simulation
+```
+
+### 3.2 Cardiac API - Implémentation
+
+#### 3.2.1 Modèle de Données
+
+```python
+@dataclass
+class CardiacData:
+    timestamp: str
+    heart_rate: int              # battements/minute
+    systolic_pressure: int       # mmHg
+    diastolic_pressure: int      # mmHg
+    oxygen_saturation: float     # %
+    cardiac_output: float        # L/min
+    rhythm: str                  # normal, tachycardia, etc.
+    status: str                  # healthy, abnormal, critical
+```
+
+#### 3.2.2 Algorithme de Génération
+
+```python
+def generate_normal_data(self):
+    # 1. Calcul de la fréquence cardiaque
+    hr = base_hr * age_factor * activity_factor + variation
+    
+    # 2. Calcul de la pression artérielle
+    systolic = base_systolic * age_factor * activity_factor + variation
+    diastolic = base_diastolic * age_factor * activity_factor + variation
+    
+    # 3. Saturation en oxygène
+    spo2 = base_spo2 + variation
+    
+    # 4. Débit cardiaque (formule physiologique)
+    cardiac_output = (stroke_volume * hr) / 1000
+    
+    return CardiacData(...)
+```
+
+#### 3.2.3 Simulation de Pathologies
+
+**Tachycardie** :
+- Fréquence cardiaque : 110-150 bpm
+- Augmentation du débit cardiaque
+- Rythme : "tachycardia"
+
+**Hypertension** :
+- Pression systolique : 145-180 mmHg
+- Pression diastolique : 95-110 mmHg
+- Autres paramètres normaux
+
+### 3.3 Respiratory API - Implémentation
+
+#### 3.3.1 Modèle de Données
+
+```python
+@dataclass
+class RespiratoryData:
+    timestamp: str
+    respiratory_rate: int        # respirations/minute
+    tidal_volume: int           # mL
+    vital_capacity: int         # mL
+    pao2: float                 # mmHg
+    paco2: float                # mmHg
+    ph: float                   # pH sanguin
+    oxygen_saturation: float    # %
+    status: str
+```
+
+#### 3.3.2 Particularités
+
+- **Gaz du sang** : PaO2, PaCO2, pH sanguin
+- **Volumes pulmonaires** : Volume courant, capacité vitale
+- **Facteurs d'influence** : Âge, sexe (capacité), activité
+
+#### 3.3.3 Pathologies Simulées
+
+**Asthme** :
+- ↑ Fréquence respiratoire (25-35 /min)
+- ↓ Volumes pulmonaires
+- ↓ Saturation O2 (88-94%)
+
+**BPCO** :
+- ↓ Capacité vitale (60% de la normale)
+- ↑ PaCO2 (rétention de CO2)
+- Acidose respiratoire
+
+### 3.4 Neural API - Implémentation
+
+#### 3.4.1 Modèle de Données
+
+```python
+@dataclass
+class NeuralData:
+    timestamp: str
+    eeg_alpha: float            # % - 8-13 Hz
+    eeg_beta: float             # % - 13-30 Hz
+    eeg_theta: float            # % - 4-8 Hz
+    eeg_delta: float            # % - 0.5-4 Hz
+    brain_activity_level: float # 0-100%
+    dopamine: float             # µg/dL
+    serotonin: float            # ng/mL
+    norepinephrine: float       # pg/mL
+    reaction_time: int          # ms
+    cortical_activity: str
+    status: str
+```
+
+#### 3.4.2 Ondes EEG par État Mental
+
+| État Mental | Alpha | Beta | Theta | Delta |
+|-------------|-------|------|-------|-------|
+| Alert | 20-40% | 50-70% | 10-20% | 5-10% |
+| Relaxed | 50-70% | 20-35% | 15-25% | 5-15% |
+| Drowsy | 15-30% | 10-20% | 45-65% | 15-25% |
+| Sleeping | 5-15% | 5-10% | 25-35% | 55-75% |
+| Stressed | 15-25% | 60-85% | 10-15% | 5-10% |
+
+#### 3.4.3 Neurotransmetteurs
+
+Les niveaux de neurotransmetteurs varient selon l'état :
+- **Dopamine** : Motivation, récompense (0.02-0.08 µg/dL)
+- **Sérotonine** : Humeur, sommeil (100-250 ng/mL)
+- **Noradrénaline** : Vigilance, stress (150-450 pg/mL)
+
+### 3.5 Orchestration API - Implémentation
+
+#### 3.5.1 Classe OrchestrationManager
+
+```python
+class OrchestrationManager:
+    def __init__(self):
+        self.timeout = 5  # secondes
+        
+    def check_api_health(self, organ: str):
+        # Vérification de santé d'une API
+        
+    def get_all_organ_data(self, count: int):
+        # Agrégation des données de tous les organes
+        
+    def simulate_multiple_conditions(self, conditions: dict):
+        # Simulation coordonnée
+        
+    def update_all_parameters(self, params: dict):
+        # Mise à jour globale des paramètres
+```
+
+#### 3.5.2 Endpoints Principaux
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/orchestration/health` | GET | Santé de tous les services |
+| `/api/orchestration/overview` | GET | Vue d'ensemble complète |
+| `/api/orchestration/data/all` | GET | Données agrégées |
+| `/api/orchestration/simulate` | POST | Simulation coordonnée |
+| `/api/orchestration/parameters` | POST | Paramètres globaux |
+
+#### 3.5.3 Gestion des Erreurs
+
+L'orchestrateur gère plusieurs types d'erreurs :
+- **Timeout** : API ne répond pas dans les 5 secondes
+- **Connection Error** : API offline
+- **Invalid Response** : Réponse mal formatée
+
+En cas d'erreur partielle, les données disponibles sont retournées avec indication des erreurs.
+
+---
+
+## 4. Génération de Données Synthétiques
+
+### 4.1 Principes de Génération
+
+#### 4.1.1 Réalisme Physiologique
+
+Toutes les valeurs sont basées sur des plages physiologiques réelles :
+
+**Cardiac** :
+- Fréquence cardiaque : 60-100 bpm (normal)
+- Pression systolique : 90-140 mmHg
+- Pression diastolique : 60-90 mmHg
+
+**Respiratory** :
+- Fréquence respiratoire : 12-20 /min
+- Capacité vitale : 3000-6000 mL (selon âge et sexe)
+
+**Neural** :
+- Temps de réaction : 150-400 ms
+- Ondes EEG : Distribution selon l'état mental
+
+#### 4.1.2 Variation Naturelle
+
+```python
+def _add_natural_variation(self, value: float, variation_percent: float = 0.05):
+    """Ajoute une variation naturelle physiologique"""
+    variation = value * variation_percent
+    return value + random.uniform(-variation, variation)
+```
+
+Cette méthode simule la variabilité naturelle des paramètres physiologiques.
+
+#### 4.1.3 Facteurs d'Influence
+
+**Facteur d'Âge** :
+```python
+def _apply_age_factor(self, value: float, is_pressure: bool = False):
+    if is_pressure:
+        # La pression augmente avec l'âge
+        age_factor = 1 + (self.age - 35) * 0.005
+    else:
+        # La fréquence diminue avec l'âge
+        age_factor = 1 - (self.age - 35) * 0.002
+    return value * age_factor
+```
+
+**Facteur d'Activité** :
+| Activité | Cardiac | Respiratory |
+|----------|---------|-------------|
+| Resting | 0.8x | 0.7x |
+| Normal | 1.0x | 1.0x |
+| Light Exercise | 1.3x | 1.5x |
+| Intense Exercise | 1.8x | 2.2x |
+
+### 4.2 Cohérence des Données
+
+#### 4.2.1 Relations Physiologiques
+
+**Débit Cardiaque** :
+```python
+cardiac_output = (stroke_volume * heart_rate) / 1000
+```
+
+**pH Sanguin et CO2** :
+- ↑ PaCO2 → ↓ pH (acidose respiratoire)
+- ↓ PaCO2 → ↑ pH (alcalose respiratoire)
+
+#### 4.2.2 Validation des Plages
+
+Toutes les valeurs sont contraintes dans des plages physiologiques :
+```python
+hr = int(max(50, min(100, hr)))  # Fréquence cardiaque
+spo2 = round(max(95, min(100, spo2)), 1)  # Saturation O2
+```
+
+### 4.3 Simulation de Pathologies
+
+Les pathologies modifient les valeurs selon des patterns médicaux connus :
+
+**Exemple - Tachycardie** :
+1. ↑ Fréquence cardiaque (110-150 bpm)
+2. ↑ Débit cardiaque (proportionnel)
+3. Rythme irrégulier possible
+4. Autres paramètres peuvent être affectés
+
+**Exemple - Asthme** :
+1. ↑ Fréquence respiratoire (réaction)
+2. ↓ Volumes pulmonaires (obstruction)
+3. ↓ Saturation O2 (hypoxie)
+4. ↑ Travail respiratoire
+
+---
+
+## 5. Tests et Validation
+
+### 5.1 Types de Tests
+
+#### 5.1.1 Tests Unitaires
+
+Tests de chaque fonction individuellement :
+```python
+def test_cardiac_normal_data():
+    simulator = CardiacSimulator()
+    data = simulator.generate_normal_data()
+    
+    assert 50 <= data.heart_rate <= 100
+    assert 90 <= data.systolic_pressure <= 140
+    assert data.status == "healthy"
+```
+
+#### 5.1.2 Tests d'Intégration
+
+Tests des endpoints API :
+```python
+def test_cardiac_status_endpoint():
+    response = requests.get('http://localhost:5001/api/cardiac/status')
+    assert response.status_code == 200
+    assert 'organ' in response.json()
+    assert response.json()['organ'] == 'heart'
+```
+
+#### 5.1.3 Tests de l'Orchestration
+
+Tests de l'agrégation et de la coordination :
+```python
+def test_orchestration_health():
+    response = requests.get('http://localhost:5000/api/orchestration/health')
+    assert response.status_code == 200
+    data = response.json()
+    assert 'overall_status' in data
+    assert len(data['organs']) == 3
+```
+
+### 5.2 Validation des Données
+
+#### 5.2.1 Plages Physiologiques
+
+Vérification que toutes les valeurs respectent les plages :
+```python
+def validate_cardiac_data(data):
+    assert 30 <= data.heart_rate <= 200
+    assert 70 <= data.systolic_pressure <= 200
+    assert 40 <= data.diastolic_pressure <= 120
+    assert 70 <= data.oxygen_saturation <= 100
+```
+
+#### 5.2.2 Cohérence Interne
+
+Vérification des relations entre paramètres :
+```python
+def test_pressure_coherence(data):
+    # La systolique doit être supérieure à la diastolique
+    assert data.systolic_pressure > data.diastolic_pressure
+    
+    # La différence doit être raisonnable
+    pulse_pressure = data.systolic_pressure - data.diastolic_pressure
+    assert 20 <= pulse_pressure <= 80
+```
+
+### 5.3 Tests de Performance
+
+#### 5.3.1 Temps de Réponse
+
+Mesure des temps de réponse :
+```python
+import time
+
+start = time.time()
+response = requests.get('http://localhost:5001/api/cardiac/data?count=100')
+elapsed = time.time() - start
+
+assert elapsed < 1.0  # Moins de 1 seconde pour 100 points
+```
+
+#### 5.3.2 Charge
+
+Test avec requêtes multiples simultanées :
+```python
+import concurrent.futures
+
+def make_request():
+    return requests.get('http://localhost:5001/api/cardiac/data')
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    futures = [executor.submit(make_request) for _ in range(100)]
+    results = [f.result() for f in futures]
+
+assert all(r.status_code == 200 for r in results)
+```
+
+---
+
+## 6. Déploiement
+
+### 6.1 Environnement de Développement
+
+#### 6.1.1 Structure des Environnements Virtuels
+
+Chaque API a son propre environnement virtuel :
+```
+cardiac-api/venv/
+respiratory-api/venv/
+neural-api/venv/
+orchestration-api/venv/
+```
+
+Avantages :
+- Isolation des dépendances
+- Versions spécifiques par service
+- Pas de conflits de packages
+
+#### 6.1.2 Installation
+
+```bash
+# Pour chaque API
+cd cardiac-api
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 6.2 Démarrage des Services
+
+#### 6.2.1 Ordre de Démarrage
+
+1. **APIs d'Organes** (ordre libre)
+   - Cardiac API (port 5001)
+   - Respiratory API (port 5002)
+   - Neural API (port 5003)
+
+2. **Orchestration API** (après les organes)
+   - Port 5000
+
+#### 6.2.2 Scripts Automatiques
+
+**Linux/Mac** :
+```bash
+./scripts/start_all.sh
+```
+
+**Windows** :
+```batch
+scripts\start_all.bat
+```
+
+### 6.3 Configuration
+
+#### 6.3.1 Variables de Configuration
+
+Dans chaque `app.py` :
+```python
+# Configuration Flask
+app.config['DEBUG'] = True
+app.config['JSON_SORT_KEYS'] = False
+
+# Configuration CORS
+CORS(app)
+
+# Port de l'application
+PORT = 5001  # Variable selon l'API
+```
+
+#### 6.3.2 Configuration de l'Orchestration
+
+Dans `orchestration-api/app.py` :
+```python
+ORGAN_APIS = {
+    "cardiac": {
+        "url": "http://localhost:5001",
+        "name": "Système Cardiovasculaire",
+        "health_endpoint": "/health"
+    },
+    # ... autres APIs
+}
+```
+
+### 6.4 Déploiement en Production
+
+#### 6.4.1 Considérations
+
+Pour un déploiement en production :
+
+1. **Serveur WSGI** : Utiliser Gunicorn ou uWSGI au lieu du serveur Flask de développement
+2. **Reverse Proxy** : Nginx pour la gestion des requêtes
+3. **HTTPS** : Certificats SSL/TLS
+4. **Monitoring** : Surveillance des performances et erreurs
+5. **Logging** : Centralisation des logs
+6. **Scaling** : Load balancing pour haute disponibilité
+
+#### 6.4.2 Exemple de Configuration Gunicorn
+
+```bash
+gunicorn -w 4 -b 0.0.0.0:5001 app:app
+```
+
+#### 6.4.3 Containerisation (Docker)
+
+Exemple de Dockerfile :
+```dockerfile
+FROM python:3.10-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app.py .
+
+EXPOSE 5001
+
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5001", "app:app"]
+```
+
+---
+
+## 7. Conclusions
+
+### 7.1 Objectifs Atteints
+
+✅ **Architecture Microservices** : Implémentation réussie avec 4 services indépendants
+
+✅ **Génération de Données Synthétiques** : Algorithmes réalistes basés sur la physiologie
+
+✅ **APIs REST** : Endpoints standardisés et documentés
+
+✅ **Orchestration** : Coordination efficace des services
+
+✅ **Documentation** : Complète et détaillée
+
+### 7.2 Points Forts du Projet
+
+1. **Réalisme Médical** :
+   - Valeurs physiologiques exactes
+   - Simulation de pathologies réaliste
+   - Cohérence des données
+
+2. **Architecture Solide** :
+   - Séparation des responsabilités
+   - Services indépendants
+   - Scalabilité
+
+3. **Code Qualité** :
+   - Code commenté et documenté
+   - Structure claire
+   - Gestion des erreurs
+
+4. **Facilité d'Utilisation** :
+   - Scripts d'installation automatiques
+   - Documentation complète
+   - Exemples d'utilisation
+
+### 7.3 Améliorations Possibles
+
+#### 7.3.1 Fonctionnalités
+
+1. **Base de Données** :
+   - Stockage persistant des données
+   - Historique des simulations
+   - Requêtes temporelles
+
+2. **Authentification** :
+   - JWT tokens
+   - Gestion des utilisateurs
+   - Permissions par API
+
+3. **Interface Web** :
+   - Dashboard de visualisation
+   - Contrôle en temps réel
+   - Graphiques des données
+
+4. **Alertes** :
+   - Notifications en cas de valeurs critiques
+   - Webhooks pour événements
+   - Email/SMS
+
+#### 7.3.2 Techniques
+
+1. **Performance** :
+   - Cache Redis
+   - Optimisation des requêtes
+   - Compression des réponses
+
+2. **Monitoring** :
+   - Prometheus pour les métriques
+   - Grafana pour la visualisation
+   - ELK Stack pour les logs
+
+3. **Tests** :
+   - Augmenter la couverture de tests
+   - Tests de charge (Locust, JMeter)
+   - Tests de sécurité
+
+4. **Documentation** :
+   - OpenAPI/Swagger
+   - Documentation interactive
+   - Vidéos de démonstration
+
+### 7.4 Apprentissages
+
+#### 7.4.1 Techniques
+
+- **Flask** : Maîtrise du framework et de ses extensions
+- **Architecture REST** : Design d'APIs cohérentes
+- **Microservices** : Communication inter-services
+- **Python** : Programmation orientée objet, dataclasses
+
+#### 7.4.2 Méthodologiques
+
+- **Documentation** : Importance de documenter au fur et à mesure
+- **Tests** : Validation continue du code
+- **Versionnement** : Utilisation de Git
+- **Travail d'Équipe** : Répartition des tâches
+
+### 7.5 Applications Pédagogiques
+
+Ce projet peut servir de base pour :
+
+1. **Formation APIs REST** :
+   - Exemples concrets d'implémentation
+   - Bonnes pratiques
+
+2. **Enseignement Médical** :
+   - Simulation de cas cliniques
+   - Compréhension de la physiologie
+
+3. **Projets Étudiants** :
+   - Base pour extension
+   - Ajout de nouveaux organes
+
+4. **Démonstrations** :
+   - Architecture microservices
+   - Génération de données synthétiques
+
+### 7.6 Considérations Éthiques
+
+⚠️ **RAPPEL IMPORTANT** :
+
+Ce projet génère des données **SYNTHÉTIQUES** à des fins **PÉDAGOGIQUES**.
+
+- ❌ **NE JAMAIS** utiliser pour des diagnostics médicaux réels
+- ❌ **NE PAS** confondre avec des données réelles de patients
+- ✅ **USAGE ÉDUCATIF UNIQUEMENT**
+- ✅ Les algorithmes sont simplifiés et ne capturent pas toute la complexité humaine
+- ✅ Toujours mentionner le caractère synthétique des données
+
+### 7.7 Perspectives
+
+Ce projet peut évoluer vers :
+
+1. **Digital Twin Médical** :
+   - Modélisation complète du corps humain
+   - Prédictions médicales
+   - Personnalisation des traitements
+
+2. **Plateforme d'Apprentissage** :
+   - Formation des professionnels de santé
+   - Simulation de cas d'urgence
+   - Évaluation des compétences
+
+3. **Recherche** :
+   - Test d'hypothèses médicales
+   - Validation de protocoles
+   - Analyse de données
+
+---
+
+## Annexes
+
+### A. Valeurs Physiologiques de Référence
+
+#### Système Cardiovasculaire
+| Paramètre | Plage Normale | Unité |
+|-----------|---------------|-------|
+| Fréquence cardiaque | 60-100 | bpm |
+| Pression systolique | 90-140 | mmHg |
+| Pression diastolique | 60-90 | mmHg |
+| Saturation O2 | 95-100 | % |
+| Débit cardiaque | 4-8 | L/min |
+
+#### Système Respiratoire
+| Paramètre | Plage Normale | Unité |
+|-----------|---------------|-------|
+| Fréquence respiratoire | 12-20 | /min |
+| Volume courant | 400-600 | mL |
+| Capacité vitale | 3000-6000 | mL |
+| PaO2 | 80-100 | mmHg |
+| PaCO2 | 35-45 | mmHg |
+| pH sanguin | 7.35-7.45 | - |
+
+#### Système Nerveux
+| Paramètre | Plage Normale | Unité |
+|-----------|---------------|-------|
+| Dopamine | 0.02-0.08 | µg/dL |
+| Sérotonine | 100-250 | ng/mL |
+| Noradrénaline | 150-300 | pg/mL |
+| Temps de réaction | 150-400 | ms |
+
+### B. Codes d'État HTTP
+
+| Code | Signification | Usage |
+|------|---------------|-------|
+| 200 | OK | Requête réussie |
+| 400 | Bad Request | Paramètres invalides |
+| 404 | Not Found | Ressource non trouvée |
+| 500 | Internal Server Error | Erreur serveur |
+
+### C. Glossaire
+
+- **API** : Application Programming Interface
+- **REST** : Representational State Transfer
+- **JSON** : JavaScript Object Notation
+- **CORS** : Cross-Origin Resource Sharing
+- **EEG** : Électroencéphalogramme
+- **PaO2** : Pression artérielle en oxygène
+- **PaCO2** : Pression artérielle en dioxyde de carbone
+- **bpm** : battements par minute
+- **mmHg** : millimètres de mercure
+
+---
+
+**Fin du Rapport Technique**
+
+*Document généré dans le cadre du TP Développement d'APIs Flask*  
+*Simulation d'Organes Humains avec Génération de Données Synthétiques*
